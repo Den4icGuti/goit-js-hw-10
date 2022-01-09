@@ -1,5 +1,3 @@
-
-
 import './css/styles.css';
 import fetchCountries from './fetchCountries';
 console.log(fetchCountries)
