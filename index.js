@@ -1,55 +1,68 @@
 import './css/styles.css';
-import { onShortВescription, onFullDescriptionCountry } from './servise-info/country-cards';
-import { fetchCountries, fethcCountry } from './servise-info/fetchCountries'
-import lodashTrottle from 'lodash.debounce'
-import { Notify } from 'notiflix';
- 
+import {httpInquiry } from './srvice/fetchCountries'
+import { shortDescCountry } from './servise-info/shortDescCountry';
+import { onFullInfoCountry } from './servise-info/fullDesc'
+import debounce from 'lodash.debounce'
+// import { Notify } from 'notiflix';
+
+ import { Notify } from 'notiflix/build/notiflix-notify-aio';
 const DEBOUNCE_DELAY = 300;
 
 
+
 const refs = { 
-  input: document.querySelector('#search-box'),
+  inputSearch:document.querySelector('#search-box'),
   countryList: document.querySelector('.country-list'),
-  countryInfo:document.querySelector('.country-info')
+  countryInfoShort:document.querySelector('.country-info')
 }
 
-const { input, countryList, countryInfo } = refs;
+ const { inputSearch, countryList, countryInfoShort } = refs;
 
-input.addEventListener('input',lodashTrottle(onSearch,300))
+inputSearch.addEventListener('input', debounce(onSearchCountry, DEBOUNCE_DELAY));
 
-function onSearch(e) { 
-  e.preventDefault();
- 
+function onSearchCountry(e) {
+  e.preventDefault()
 
-  let search = input.value;
-  
-  if (search.trim() === "") { 
-    countryList.innerHTML = "";
-    countryInfo.innerHTML = "";
-    console.log('qwdqw')
+  let valueSearchCountry = inputSearch.value;
+
+  if(valueSearchCountry.trim() === '') { 
+    
+    countryList.innerHTML = '';
+    countryInfoShort.innerHTML = '';
     return;
-  }
-
-  fetchCountries(search.trim())
+  };
+   
+  httpInquiry(valueSearchCountry.trim())
     .then(countries => { 
-      if (countries > 10) { 
-        Notify.failure('Too many matches found. Please enter a more specific name.');
-        countryList.innerHTML = "";
-        countryInfo.innerHTML = "";
+      if (countries.length > 10) { 
+        Notify.info("Too many matches found. Please enter a more specific name.");
+        countryList.innerHTML = '';
+        countryInfoShort.innerHTML = ''
         return;
+      }
+
+    if (countries.length > 2 && countries.length < 10) { 
+      const marcup = countries.map(country => shortDescCountry(country));
+      countryInfoShort.innerHTML = '';
+      countryList.innerHTML = marcup.join(' ');;
+    }
+      
+      if (countries.length === 1) { 
+        const fullInfo = countries.map(country => onFullInfoCountry(country));
+        countryInfoShort.innerHTML = fullInfo.join();
+        countryList.innerHTML = '';
       }
       
     })
-  // if(countries.length >= 2  && countries.length <= 10) {
-  //   const listMarkup = countries.map(country => showCountryList(country))
-  //   countryList.innerHTML = listMarkup.join('');
-  //   countryInfo.innerHTML = "";
-  //   }
-  // if (countries > 2 && countries < 10) { 
-  //   const listCountry = countries.map(country => onShortВescription(country));
-  //   countryList.innerHTML = listCountry;
-  // }
+    .catch(error => { 
+      Notify.failure('Oops, there is no country with that name');
+      countryList.innerHTML = '';
+      countryInfoShort.innerHTML = '';
+      return error;
+    })
 }
+
+
 
 
 
