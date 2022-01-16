@@ -41,7 +41,7 @@ function onSearchCountry(e) {
         return;
       }
 
-    if (countries.length > 2 && countries.length < 10) { 
+    if (countries.length >= 2 && countries.length <= 10) { 
       const marcup = countries.map(country => shortDescCountry(country));
       countryInfoShort.innerHTML = '';
       countryList.innerHTML = marcup.join(' ');;
